@@ -1,0 +1,22 @@
+# Ignore all
+*
+
+# Unignore all with extensions
+!*.*
+
+# Unignore all dirs
+!*/
+
+# Uningnore Makefile
+!Makefile
+
+# Ignore files with extension `.class` & `.sm`
+*.class
+*.sm
+
+# Ignore `bin` dir
+bin/
+# or
+*/bin/*
+
+.vscode/

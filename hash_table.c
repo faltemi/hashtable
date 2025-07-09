@@ -15,7 +15,7 @@ HashTable* hash_table_new(size_t table_size, void (*destroy)(ExampleObj *)){
 }
 
 unsigned int hash(const char* name, int table_size){
-    int len = strlen(name);
+    size_t len = strlen(name);
     unsigned int hashVal = 0;
     for(size_t i = 0; i < len; i++){
         hashVal += name[i];
