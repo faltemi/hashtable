@@ -44,17 +44,24 @@ void print_table(){
 bool hash_table_insert(ExampleObj* v){
     if(!v) return false;
     int idx = hash(v->name);
-    if(hash_table[idx] != NULL){
-        printf("Collision!\n");
-        return false;
+    // Linear probing in case of collisions
+    for(int i = 0; i < TABLE_SIZE; i++){
+        int try = (i + idx) % TABLE_SIZE;
+        if(!hash_table[try]){
+            hash_table[try] = v;
+            return true;
+        }
     }
-    hash_table[idx] = v;
-    return true;
+    printf("Collision!\n");
+    return false;
 }
 
 ExampleObj* lookup_hash(const char* name){
     int idx = hash(name);
-    if(hash_table[idx] && strcmp(hash_table[idx]->name, name) == 0) return hash_table[idx];
+    for(int i = 0; i < TABLE_SIZE; i++){
+        int try = (i + idx) % TABLE_SIZE;
+        if(hash_table[idx] && strcmp(hash_table[idx]->name, name) == 0) return hash_table[idx];
+    }
     return NULL;
 }
 
