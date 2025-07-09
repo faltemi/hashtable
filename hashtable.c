@@ -60,7 +60,7 @@ ExampleObj* lookup_hash(const char* name){
     int idx = hash(name);
     for(int i = 0; i < TABLE_SIZE; i++){
         int try = (i + idx) % TABLE_SIZE;
-        if(hash_table[idx] && strcmp(hash_table[idx]->name, name) == 0) return hash_table[idx];
+        if(hash_table[try] && strcmp(hash_table[try]->name, name) == 0) return hash_table[try];
     }
     return NULL;
 }
