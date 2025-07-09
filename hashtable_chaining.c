@@ -5,11 +5,11 @@
 #include <stdbool.h>
 
 #define TABLE_SIZE 34
-#define DELETED_NODE (ExampleObj*)(0xFFFFFFFFFFFFFFFFUL)
 
 typedef struct ExampleObj{
     char* name;
     int val;
+    struct ExampleObj* next;
 }ExampleObj;
 
 ExampleObj* hash_table[TABLE_SIZE];
@@ -36,11 +36,14 @@ void print_table(){
         if(!hash_table[i]){
             printf("\t%i\t---\n", i); 
         }
-        if(hash_table[i] == DELETED_NODE){
-            printf("\t%i\t-<DELETED>-\n", i); 
-        }
         else{
-           printf("\t%i\t%s\n", i, hash_table[i]->name);
+            printf("\t%i\t", i);
+            ExampleObj* itr = hash_table[i];
+            while(itr){
+                printf("%s - ", itr->name);  
+                itr = itr->next;             
+            }
+            printf("\n");
         }
     }
 }
@@ -48,93 +51,86 @@ void print_table(){
 bool hash_table_insert(ExampleObj* v){
     if(!v) return false;
     int idx = hash(v->name);
-    // Linear probing in case of collisions
-    for(int i = 0; i < TABLE_SIZE; i++){
-        int try = (i + idx) % TABLE_SIZE;
-        if(!hash_table[try] || hash_table[try] == DELETED_NODE){
-            hash_table[try] = v;
-            return true;
-        }
-    }
-    printf("Collision!\n");
-    return false;
+    v->next = hash_table[idx];
+    hash_table[idx] = v;
+    return true;
 }
 
 ExampleObj* lookup_hash(const char* name){
     int idx = hash(name);
-    for(int i = 0; i < TABLE_SIZE; i++){
-        int try = (i + idx) % TABLE_SIZE;
-        if(!hash_table[try]) return NULL; // Null means not here, deleted means it could still be here due to linear polling
-        if(hash_table[try] == DELETED_NODE) continue;
-        if(hash_table[try] && strcmp(hash_table[try]->name, name) == 0) return hash_table[try];
+    ExampleObj* itr = hash_table[idx];
+    while(itr && strcmp(itr->name, name) != 0){
+        itr = itr->next;
     }
-    return NULL;
+    return itr;
 }
 
 ExampleObj* delete_hash(const char* name){
     int idx = hash(name);
-    for(int i = 0; i < TABLE_SIZE; i++){
-        int try = (i + idx) % TABLE_SIZE;
-        if(!hash_table[try]) return NULL; // If first value is null, then value doesn't exist
-        if(hash_table[try] == DELETED_NODE) continue;
-        if(hash_table[try] && strcmp(hash_table[try]->name, name) == 0){
-            ExampleObj* tmp = hash_table[try];
-            hash_table[try] = DELETED_NODE;
-            return tmp;
-        }
+    ExampleObj* prev = NULL;
+    ExampleObj* itr = hash_table[idx];
+
+    while(itr && strcmp(itr->name, name) != 0){
+        prev = itr;
+        itr = itr->next;
     }
-    return NULL;
+    if(!itr) return NULL;
+
+    if(prev) prev->next = itr->next;
+    else     hash_table[idx] = itr->next;
+    
+    return itr;
 }
 
 int main(){
     init_hash_table();
 
     /* --- create all ExampleObj instances --- */
-    ExampleObj plus       = {.name = "+",         .val = 13};
-    ExampleObj minus      = {.name = "-",         .val = 23};
-    ExampleObj div        = {.name = "/",         .val = 43};
-    ExampleObj mult       = {.name = "*",         .val = 32};
-    ExampleObj mod        = {.name = "%",         .val = 13};
-    ExampleObj eq         = {.name = "=",         .val = 23};
-    ExampleObj neq        = {.name = "!=",        .val = 43};
-    ExampleObj lt         = {.name = "<",         .val = 32};
-    ExampleObj lte        = {.name = "<=",        .val = 13};
-    ExampleObj gt         = {.name = ">",         .val = 23};
-    ExampleObj gte        = {.name = ">=",        .val = 43};
-    ExampleObj excl       = {.name = "!",         .val = 32};
-    ExampleObj write      = {.name = ":=",        .val = 1 };
-    ExampleObj and        = {.name = "and",       .val = 13};
-    ExampleObj cell       = {.name = "cell",      .val = 23};
-    ExampleObj chr        = {.name = "chr",       .val = 43};
-    ExampleObj cons       = {.name = "cons",      .val = 32};
-    ExampleObj def        = {.name = "def",       .val = 13};
-    ExampleObj doVal      = {.name = "do",        .val = 23};
-    ExampleObj error      = {.name = "error",     .val = 43};
-    ExampleObj fn         = {.name = "fn",        .val = 32};
-    ExampleObj get_file   = {.name = "get-file",  .val = 13};
-    ExampleObj head       = {.name = "head",      .val = 23};
-    ExampleObj ifVal      = {.name = "if",        .val = 43};
-    ExampleObj input      = {.name = "input",     .val = 32};
-    ExampleObj let        = {.name = "let",       .val = 13};
-    ExampleObj list       = {.name = "list",      .val = 23};
-    ExampleObj load       = {.name = "load",      .val = 43};
-    ExampleObj loop       = {.name = "loop",      .val = 32};
-    ExampleObj macro      = {.name = "macro",     .val = 13};
-    ExampleObj not        = {.name = "not",       .val = 23};
-    ExampleObj new_symbol = {.name = "new-symbol",.val = 43};
-    ExampleObj or         = {.name = "or",        .val = 32};
-    ExampleObj ord        = {.name = "ord",       .val = 13};
-    ExampleObj output     = {.name = "output",    .val = 23};
-    ExampleObj parse      = {.name = "parse",     .val = 43};
-    ExampleObj print      = {.name = "print",     .val = 32};
-    ExampleObj put_file   = {.name = "put-file",  .val = 13};
-    ExampleObj quit       = {.name = "quit",      .val = 23};
-    ExampleObj quote      = {.name = "quote",     .val = 43};
-    ExampleObj read       = {.name = "read",      .val = 32};
-    ExampleObj str        = {.name = "str",       .val = 13};
-    ExampleObj tail       = {.name = "tail",      .val = 23};
-    ExampleObj try_       = {.name = "try",       .val = 43};
-    ExampleObj type_      = {.name = "type",      .val = 32};
+    ExampleObj plus       = {.name = "+",         .val = 13, .next = NULL};
+    ExampleObj minus      = {.name = "-",         .val = 23, .next = NULL};
+    ExampleObj div        = {.name = "/",         .val = 43, .next = NULL};
+    ExampleObj mult       = {.name = "*",         .val = 32, .next = NULL};
+    ExampleObj mod        = {.name = "%",         .val = 13, .next = NULL};
+    ExampleObj eq         = {.name = "=",         .val = 23, .next = NULL};
+    ExampleObj neq        = {.name = "!=",        .val = 43, .next = NULL};
+    ExampleObj lt         = {.name = "<",         .val = 32, .next = NULL};
+    ExampleObj lte        = {.name = "<=",        .val = 13, .next = NULL};
+    ExampleObj gt         = {.name = ">",         .val = 23, .next = NULL};
+    ExampleObj gte        = {.name = ">=",        .val = 43, .next = NULL};
+    ExampleObj excl       = {.name = "!",         .val = 32, .next = NULL};
+    ExampleObj write      = {.name = ":=",        .val = 1 , .next = NULL};
+    ExampleObj and        = {.name = "and",       .val = 13, .next = NULL};
+    ExampleObj cell       = {.name = "cell",      .val = 23, .next = NULL};
+    ExampleObj chr        = {.name = "chr",       .val = 43, .next = NULL};
+    ExampleObj cons       = {.name = "cons",      .val = 32, .next = NULL};
+    ExampleObj def        = {.name = "def",       .val = 13, .next = NULL};
+    ExampleObj doVal      = {.name = "do",        .val = 23, .next = NULL};
+    ExampleObj error      = {.name = "error",     .val = 43, .next = NULL};
+    ExampleObj fn         = {.name = "fn",        .val = 32, .next = NULL};
+    ExampleObj get_file   = {.name = "get-file",  .val = 13, .next = NULL};
+    ExampleObj head       = {.name = "head",      .val = 23, .next = NULL};
+    ExampleObj ifVal      = {.name = "if",        .val = 43, .next = NULL};
+    ExampleObj input      = {.name = "input",     .val = 32, .next = NULL};
+    ExampleObj let        = {.name = "let",       .val = 13, .next = NULL};
+    ExampleObj list       = {.name = "list",      .val = 23, .next = NULL};
+    ExampleObj load       = {.name = "load",      .val = 43, .next = NULL};
+    ExampleObj loop       = {.name = "loop",      .val = 32, .next = NULL};
+    ExampleObj macro      = {.name = "macro",     .val = 13, .next = NULL};
+    ExampleObj not        = {.name = "not",       .val = 23, .next = NULL};
+    ExampleObj new_symbol = {.name = "new-symbol",.val = 43, .next = NULL};
+    ExampleObj or         = {.name = "or",        .val = 32, .next = NULL};
+    ExampleObj ord        = {.name = "ord",       .val = 13, .next = NULL};
+    ExampleObj output     = {.name = "output",    .val = 23, .next = NULL};
+    ExampleObj parse      = {.name = "parse",     .val = 43, .next = NULL};
+    ExampleObj print      = {.name = "print",     .val = 32, .next = NULL};
+    ExampleObj put_file   = {.name = "put-file",  .val = 13, .next = NULL};
+    ExampleObj quit       = {.name = "quit",      .val = 23, .next = NULL};
+    ExampleObj quote      = {.name = "quote",     .val = 43, .next = NULL};
+    ExampleObj read       = {.name = "read",      .val = 32, .next = NULL};
+    ExampleObj str        = {.name = "str",       .val = 13, .next = NULL};
+    ExampleObj tail       = {.name = "tail",      .val = 23, .next = NULL};
+    ExampleObj try_       = {.name = "try",       .val = 43, .next = NULL};
+    ExampleObj type_      = {.name = "type",      .val = 32, .next = NULL};
 
     /* --- insert every object into the hash table --- */
     hash_table_insert(&plus);
