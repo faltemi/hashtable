@@ -1,3 +1,5 @@
 # hashtable
 C hashtable testing for use in my interpreter project
 Followed this tutorial: https://www.youtube.com/watch?app=desktop&v=2Ti5yvumFTU&t=782s
+
+Goal is to create reusable hash table struct for my interpreter's memory management and builtin function lookup.
