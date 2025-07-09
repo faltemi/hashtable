@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #define TABLE_SIZE 34
+#define DELETED_NODE (ExampleObj*)(0xFFFFFFFFFFFFFFFFUL)
 
 typedef struct ExampleObj{
     char* name;
@@ -47,7 +48,7 @@ bool hash_table_insert(ExampleObj* v){
     // Linear probing in case of collisions
     for(int i = 0; i < TABLE_SIZE; i++){
         int try = (i + idx) % TABLE_SIZE;
-        if(!hash_table[try]){
+        if(!hash_table[try] || hash_table[try] == DELETED_NODE){
             hash_table[try] = v;
             return true;
         }
@@ -60,6 +61,8 @@ ExampleObj* lookup_hash(const char* name){
     int idx = hash(name);
     for(int i = 0; i < TABLE_SIZE; i++){
         int try = (i + idx) % TABLE_SIZE;
+        if(!hash_table[try]) return NULL; // Null means not here, deleted means it could still be here due to linear polling
+        if(hash_table[try] == DELETED_NODE) continue;
         if(hash_table[try] && strcmp(hash_table[try]->name, name) == 0) return hash_table[try];
     }
     return NULL;
@@ -69,9 +72,11 @@ ExampleObj* delete_hash(const char* name){
     int idx = hash(name);
     for(int i = 0; i < TABLE_SIZE; i++){
         int try = (i + idx) % TABLE_SIZE;
+        if(!hash_table[try]) return NULL; // If first value is null, then value doesn't exist
+        if(hash_table[try] == DELETED_NODE) continue;
         if(hash_table[try] && strcmp(hash_table[try]->name, name) == 0){
             ExampleObj* tmp = hash_table[try];
-            hash_table[try] = NULL;
+            hash_table[try] = DELETED_NODE;
             return tmp;
         }
     }
