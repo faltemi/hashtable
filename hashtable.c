@@ -67,10 +67,13 @@ ExampleObj* lookup_hash(const char* name){
 
 ExampleObj* delete_hash(const char* name){
     int idx = hash(name);
-    if(hash_table[idx] && strcmp(hash_table[idx]->name, name) == 0){
-        ExampleObj* tmp = hash_table[idx];
-        hash_table[idx] = NULL;
-        return tmp;
+    for(int i = 0; i < TABLE_SIZE; i++){
+        int try = (i + idx) % TABLE_SIZE;
+        if(hash_table[try] && strcmp(hash_table[try]->name, name) == 0){
+            ExampleObj* tmp = hash_table[try];
+            hash_table[try] = NULL;
+            return tmp;
+        }
     }
     return NULL;
 }
