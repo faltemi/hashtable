@@ -28,10 +28,10 @@ void print_table(HashTable* hash_table){
     if(!hash_table || !hash_table->buf) return;
     for(size_t i = 0; i < hash_table->table_size; i++){
         if(!hash_table->buf[i]){
-            printf("\t%i\t---\n", i); 
+            printf("\t%li\t---\n", i); 
         }
         else{
-            printf("\t%i\t", i);
+            printf("\t%li\t", i);
             ExampleObj* itr = hash_table->buf[i];
             while(itr){
                 printf("%s - ", itr->name);  
